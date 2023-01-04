@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Css -->
+    <link rel="stylesheet" href="./statics/css/style.css">
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha512-MV7K8+y+gLIBoVD59lQIYicR65iaqukzvf/nwasF0nqhPay5w/9lJmVM2hMDcnK1OnMGCdVK+iQrJ7lzPJQd1w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <title>Todo app</title>
+</head>
+<body>
+
+    <section class="header">
+        <div class="container">
+            <h1>Hello,</h1>
+            <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Aspernatur dolores qui repellendus nesciunt, et voluptatem veniam veritatis odio natus ratione ipsa magnam commodi corporis facere dolor quod rem, eaque accusamus.</p>
+        </div>
+    </section>
+
+    <section class="main">
+
+        <form class="add-form">
+            <label for="item">Item :</label>
+            <input type="text" id="item" />
+            <label for="date-time">Date and time :</label>
+            <input type="datetime-local" id="date-time"/>
+            <button class="btn btn-primary" onClick="add_item()"> Add item</button>
+        </form>
+        <hr>
+
+        
+        <div class="actions">
+            <button class="btn btn-danger">Cancel</button>
+            <h1>Todo list</h1>
+            <button class="btn btn-success">Completed</button>
+        </div>
+
+        <div class="content" id="content">
+            <!-- <div class="item">
+                <input type="checkbox">
+                <h4>Item Item Item Item</h4>
+            </div> -->
+            <!-- Items will be added with javascript -->
+            
+            
+        </div>
+
+    </section>
+
+    <script src="https://code.jquery.com/jquery-3.6.3.min.js" integrity="sha256-pvPw+upLPUjgMXY0G+8O0xUf+/Im1MZjXxxgOcBQBXU=" crossorigin="anonymous"></script>
+
+    <script>
+        $(document).ready(()=>{
+            
+            add_item = ()=>{
+                event.preventDefault()
+
+                const data = {
+                                "name":$("#item").val(),
+                                "date":$("#date-time").val().split("T")[0],
+                                "time":$("#date-time").val().split("T")[1]
+                             }
+                console.log(data);
+
+                //prepare ajax
+                $.ajax({
+                    data:data,
+                    type:'POST',
+                    url:'server/add_item.php',
+                    success : (res)=>{
+                        res = JSON.parse(res);
+                        if(res.status == 200){
+                            console.log("Ok");
+                            window.location.reload();
+
+                        }else{
+                            console.log("Error! :"+ res.data)
+                        }
+                    }
+                })
+            }
+            
+            get_items = ()=>{
+                
+                $.ajax({
+                    data:'',
+                    type:'GET',
+                    url:"./server/get_items.php",
+                    success:(res)=>{
+                        res = JSON.parse(res);
+                        if(res.status == 200){
+                            const items = res.data;
+                            let output = "";
+                            let item;
+                            //today : in format yyyy-mm-dd
+                            const today = new Date().toJSON().split("T")[0];
+                        
+                            console.log("Today : "+ today);
+                            for (let i = 0; i < items.length; i++) {
+                                item = items[i];
+                                if(item.date == today){
+                                    const icon = item.state == 0 ? ('<i class="fa-solid fa-hourglass-start"></i>'):('<i class="fa-solid fa-check"></i>');
+                                    output += '<div class="item">'+
+                                          '<input type="checkbox">'+
+                                          '<h4>'+item.name+'</h4>'+
+                                          '<h4>'+item.date+'</h4>'+
+                                          '<h4>'+item.time+'</h4>'+
+                                          '<h4>'+icon+'</h4>'                                        
+                                          '</div>'
+                                    
+                                }
+                            }
+
+                            // add items into html
+                            $('#content').html(output)
+
+
+                        }else{
+                            console.log("Error!" + res.data)
+                        }
+                    }
+                    })
+            }
+            
+            get_items();
+        })
+    </script>
+    
+</body>
+</html>
